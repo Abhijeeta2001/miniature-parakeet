@@ -1,4 +1,3 @@
-```markdown
 # 📦 XYZ Fulfillment Hub
 ### Real-Time Warehouse Operations & Exception Management Dashboard
 
@@ -22,12 +21,6 @@ Zero dependencies, package managers, or build steps required.
 2. *(Optional)* Run via a local Python server:
    ```bash
    python3 -m http.server 8000
-
-```
-
-Open: `http://localhost:8000/fulfillment-hub.html`
-
----
 
 ## 🎯 High-Priority Problems Addressed
 
