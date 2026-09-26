@@ -1,6 +1,3 @@
-Here is a polished, visually engaging version of your `README.md` that keeps all your exact details, live links, and architectural reasoning intact while introducing badges, structured callouts, tables, and clean typography:
-
-```markdown
 <div align="center">
 
 # 📦 XYZ Fulfillment Hub
