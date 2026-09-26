@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>XYZ Fulfillment Hub</title>
+<style>
+:root{
+  --bg:#f4f6f8; --card:#ffffff; --text:#1a2233; --muted:#5c6b7a; --border:#e1e6eb;
+  --accent:#2f6fed; --green:#1f9d55; --amber:#d97706; --red:#dc2626; --purple:#7c3aed;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#12161c;--card:#1b2027;--text:#e8ecf1;--muted:#93a1af;--border:#2a313b;}
+}
+:root[data-theme="dark"]{--bg:#12161c;--card:#1b2027;--text:#e8ecf1;--muted:#93a1af;--border:#2a313b;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,sans-serif;min-height:100%;}
+header{padding:16px 20px 0;padding-top:calc(16px + env(safe-area-inset-top,0px));position:sticky;top:0;background:var(--bg);z-index:5;}
+h1{font-size:19px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:12px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.kpi b{font-size:20px;display:block}
+.kpi span{font-size:12px;color:var(--muted)}
+nav{display:flex;gap:4px;border-bottom:1px solid var(--border);overflow-x:auto}
+nav button{background:none;border:none;padding:10px 14px;font-size:13px;color:var(--muted);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent}
+nav button.active{color:var(--accent);border-color:var(--accent);font-weight:600}
+main{padding:14px 20px 40px;max-width:1200px;margin:0 auto}
+.board{display:flex;gap:10px;overflow-x:auto;padding-bottom:10px}
+.col{min-width:190px;flex:1}
+.col h3{font-size:12px;text-transform:uppercase;color:var(--muted);margin:0 0 8px;display:flex;justify-content:space-between}
+.card{background:var(--card);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:12.5px}
+.card b{display:block;font-size:13px}
+.tag{display:inline-block;font-size:10px;padding:2px 6px;border-radius:20px;margin-top:4px;font-weight:600}
+.g{background:#e7f6ec;color:var(--green)}.a{background:#fef3e2;color:var(--amber)}.r{background:#fde8e8;color:var(--red)}.p{background:#f1e8fe;color:var(--purple)}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:13px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase}
+tr:last-child td{border-bottom:none}
+.filters{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+select,input,button.act{padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--text);font-size:12.5px}
+button.act{cursor:pointer;background:var(--accent);color:#fff;border:none}
+button.sm{padding:4px 8px;font-size:11px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;margin-right:4px}
+.overflow-x{overflow-x:auto}
+.badge{padding:2px 7px;border-radius:20px;font-size:10.5px;font-weight:600}
+.wrap{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.note{color:var(--muted);font-size:12px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<header>
+  <h1>XYZ Fulfillment Hub</h1>
+  <div class="sub">Order &amp; warehouse operations — live status, priority SLAs, and exception tracking</div>
+  <div class="kpis" id="kpis"></div>
+  <nav id="tabs">
+    <button data-t="dash" class="active">Dashboard</button>
+    <button data-t="orders">Orders</button>
+    <button data-t="inv">Inventory</button>
+    <button data-t="issues">Issues</button>
+  </nav>
+</header>
+<main id="main"></main>
+<script>
+const STAGES=["Received","Processing","Picking","Packing","Staging","Shipped"];
+const COURIERS=["Speedex","BlueDart","Local Rider"];
+const NAMES=["A. Rao","M. Sen","K. Iyer","P. Das","R. Nair","S. Verma","T. Kapoor","J. Fernandes","N. Bose","V. Menon"];
+const SKUS=[["SK-101","Ceramic Mug"],["SK-102","Yoga Mat"],["SK-103","Desk Lamp"],["SK-104","Water Bottle"],["SK-105","Backpack"],["SK-106","Bluetooth Speaker"],["SK-107","Notebook Set"],["SK-108","Phone Stand"]];
+
+function rand(n){return Math.floor(Math.random()*n)}
+function pick(a){return a[rand(a.length)]}
+function uid(p){return p+"-"+Math.random().toString(36).slice(2,7)}
+
+function seed(){
+  let orders=[],inv=[],issues=[];
+  const now=Date.now();
+  SKUS.forEach(([sku,name])=>{
+    inv.push({sku,name,wh1:5+rand(40),wh2:5+rand(30),reorder:10});
+  });
+  for(let i=0;i<58;i++){
+    const priority=Math.random()<0.16;
+    const [sku,name]=pick(SKUS);
+    const status=pick(STAGES.slice(0, i%9===0?6: (Math.random()<0.55?6:4)));
+    const ageHrs = status==="Shipped"? (12+rand(30)) : Math.random()*(priority?7:26);
+    orders.push({
+      id:uid("ORD"),customer:pick(NAMES),sku,item:name,qty:1+rand(3),
+      priority,status,courier:pick(COURIERS),warehouse: Math.random()<0.75?"WH1":"WH2",
+      receivedAt: now-ageHrs*3600000
+    });
+  }
+  // force a couple of overdue priority orders for realism
+  orders[2].priority=true;orders[2].status="Picking";orders[2].receivedAt=now-9*3600000;
+  orders[7].priority=true;orders[7].status="Processing";orders[7].receivedAt=now-6*3600000;
+  issues.push({id:uid("ISS"),orderId:orders[0].id,type:"Stock missing",desc:"WH1 count shows 0 but system says 6 in stock",status:"Open",at:now-3*3600000});
+  issues.push({id:uid("ISS"),orderId:orders[5].id,type:"Courier missed pickup",desc:"Speedex no-show at 4pm slot",status:"Open",at:now-1*3600000});
+  return {orders,inv,issues};
+}
+
+let state = JSON.parse(localStorage.getItem("fh_state")||"null") || seed();
+function save(){localStorage.setItem("fh_state",JSON.stringify(state))}
+
+function slaInfo(o){
+  if(o.status==="Shipped") return {label:"Shipped",cls:"g"};
+  const limit=o.priority?4:24;
+  const elapsed=(Date.now()-o.receivedAt)/3600000;
+  const remain=limit-elapsed;
+  if(remain<0) return {label:"OVERDUE "+Math.abs(remain).toFixed(1)+"h",cls:"r"};
+  if(remain<2) return {label:remain.toFixed(1)+"h left",cls:"a"};
+  return {label:remain.toFixed(1)+"h left",cls:"g"};
+}
+
+function needsTransfer(item){
+  const pending = state.orders.filter(o=>o.sku===item.sku && o.status!=="Shipped").length;
+  return item.wh1 < pending && item.wh2>0;
+}
+
+let tab="dash";
+document.getElementById("tabs").addEventListener("click",e=>{
+  if(e.target.tagName!=="BUTTON")return;
+  tab=e.target.dataset.t;
+  [...document.querySelectorAll("#tabs button")].forEach(b=>b.classList.toggle("active",b.dataset.t===tab));
+  render();
+});
+
+function renderKpis(){
+  const openIssues=state.orders.length && state.issues.filter(i=>i.status==="Open").length;
+  const overdue=state.orders.filter(o=>o.status!=="Shipped" && slaInfo(o).cls==="r").length;
+  const shippedToday=state.orders.filter(o=>o.status==="Shipped").length;
+  const priorityActive=state.orders.filter(o=>o.priority && o.status!=="Shipped").length;
+  document.getElementById("kpis").innerHTML=`
+    <div class="kpi"><b>${state.orders.length}</b><span>Total orders</span></div>
+    <div class="kpi"><b style="color:${overdue?'var(--red)':'var(--text)'}">${overdue}</b><span>SLA breaches</span></div>
+    <div class="kpi"><b>${priorityActive}</b><span>Priority in flight</span></div>
+    <div class="kpi"><b>${shippedToday}</b><span>Shipped</span></div>
+    <div class="kpi"><b style="color:${openIssues?'var(--amber)':'var(--text)'}">${openIssues}</b><span>Open issues</span></div>`;
+}
+
+function renderDash(){
+  let html='<div class="board">';
+  STAGES.forEach(st=>{
+    const items=state.orders.filter(o=>o.status===st);
+    html+=`<div class="col"><h3>${st} <span>${items.length}</span></h3>`;
+    items.slice(0,12).forEach(o=>{
+      const s=slaInfo(o);
+      html+=`<div class="card" style="border-left-color:var(--${s.cls==='r'?'red':s.cls==='a'?'amber':s.cls==='p'?'purple':'green'})">
+        <b>${o.id}</b> ${o.item} ×${o.qty}<br><span style="color:var(--muted)">${o.customer} · ${o.warehouse}</span>
+        <div><span class="tag ${s.cls}">${s.label}</span> ${o.priority?'<span class="tag p">PRIORITY</span>':''}</div></div>`;
+    });
+    if(items.length>12) html+=`<div class="note">+${items.length-12} more — see Orders tab</div>`;
+    html+='</div>';
+  });
+  html+='</div>';
+  document.getElementById("main").innerHTML=html;
+}
+
+function renderOrders(){
+  const f=state._filter||{};
+  let rows=state.orders.filter(o=>(!f.status||o.status===f.status)&&(!f.priority||o.priority));
+  rows.sort((a,b)=>slaInfo(b).cls.localeCompare(slaInfo(a).cls));
+  let html=`<div class="filters">
+    <select id="fStatus"><option value="">All statuses</option>${STAGES.map(s=>`<option ${f.status===s?'selected':''}>${s}</option>`).join('')}</select>
+    <label style="font-size:12.5px;display:flex;align-items:center;gap:4px"><input type="checkbox" id="fPriority" ${f.priority?'checked':''}> Priority only</label>
+  </div><div class="overflow-x"><table><tr><th>Order</th><th>Item</th><th>Customer</th><th>WH</th><th>Status</th><th>SLA</th><th>Actions</th></tr>`;
+  rows.forEach(o=>{
+    const s=slaInfo(o);
+    const next=STAGES[STAGES.indexOf(o.status)+1];
+    html+=`<tr><td>${o.id}${o.priority?' <span class="tag p">P</span>':''}</td><td>${o.item} ×${o.qty}</td><td>${o.customer}</td><td>${o.warehouse}</td><td>${o.status}</td>
+    <td><span class="tag ${s.cls}">${s.label}</span></td>
+    <td>${next?`<button class="sm" onclick="advance('${o.id}')">→ ${next}</button>`:''}<button class="sm" onclick="openFlag('${o.id}')">Flag issue</button></td></tr>`;
+  });
+  html+='</table></div>';
+  document.getElementById("main").innerHTML=html;
+  document.getElementById("fStatus").onchange=e=>{state._filter={...f,status:e.target.value};render()};
+  document.getElementById("fPriority").onchange=e=>{state._filter={...f,priority:e.target.checked};render()};
+}
+
+function advance(id){
+  const o=state.orders.find(x=>x.id===id);
+  const i=STAGES.indexOf(o.status);
+  if(i<STAGES.length-1){o.status=STAGES[i+1];save();render();}
+}
+function openFlag(id){
+  const type=prompt("Issue type (Stock missing / Wrong item risk / Courier missed pickup / Packed box misplaced / Other):","Stock missing");
+  if(!type)return;
+  const desc=prompt("Short description:","")||"";
+  state.issues.push({id:uid("ISS"),orderId:id,type,desc,status:"Open",at:Date.now()});
+  save();render();
+}
+function resolveIssue(id){
+  const iss=state.issues.find(x=>x.id===id); iss.status="Resolved"; save(); render();
+}
+
+function renderInv(){
+  let html='<div class="overflow-x"><table><tr><th>SKU</th><th>Item</th><th>WH1 stock</th><th>WH2 stock</th><th>Pending demand</th><th>Flag</th></tr>';
+  state.inv.forEach(it=>{
+    const pending=state.orders.filter(o=>o.sku===it.sku&&o.status!=="Shipped").length;
+    const low=it.wh1<it.reorder;
+    const transfer=needsTransfer(it);
+    html+=`<tr><td>${it.sku}</td><td>${it.name}</td><td>${it.wh1}</td><td>${it.wh2}</td><td>${pending}</td>
+    <td>${transfer?'<span class="tag r">Transfer from WH2</span>':low?'<span class="tag a">Low stock</span>':'<span class="tag g">OK</span>'}</td></tr>`;
+  });
+  html+='</table></div><div class="note">Flag logic: WH1 stock below number of un-shipped orders for that SKU, with WH2 holding cover stock, triggers a transfer alert before it becomes a missed pick.</div>';
+  document.getElementById("main").innerHTML=html;
+}
+
+function renderIssues(){
+  let html='<div class="overflow-x"><table><tr><th>Order</th><th>Type</th><th>Description</th><th>Status</th><th>Age</th><th></th></tr>';
+  state.issues.slice().sort((a,b)=>b.at-a.at).forEach(iss=>{
+    const hrs=((Date.now()-iss.at)/3600000).toFixed(1);
+    html+=`<tr><td>${iss.orderId}</td><td>${iss.type}</td><td>${iss.desc}</td>
+    <td><span class="badge" style="background:${iss.status==='Open'?'#fde8e8':'#e7f6ec'};color:${iss.status==='Open'?'var(--red)':'var(--green)'}">${iss.status}</span></td>
+    <td>${hrs}h</td><td>${iss.status==='Open'?`<button class="sm" onclick="resolveIssue('${iss.id}')">Resolve</button>`:''}</td></tr>`;
+  });
+  html+='</table></div>';
+  document.getElementById("main").innerHTML=html;
+}
+
+function render(){
+  renderKpis();
+  if(tab==="dash")renderDash();
+  else if(tab==="orders")renderOrders();
+  else if(tab==="inv")renderInv();
+  else renderIssues();
+}
+render();
+setInterval(render,60000);
+</script>
+</body>
+</html>
