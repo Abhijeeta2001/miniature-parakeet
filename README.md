@@ -1,33 +1,29 @@
-# XYZ Fulfillment Hub — Take-Home Submission
+<div align="center">
 
-**Live hosted version:** https://claude.ai/artifact/5kjYyazGcG16RewfsrVkNz
-**Run locally:** open `fulfillment-hub.html` directly in any browser — no build step, no server, no dependencies. (Optional: `python3 -m http.server` in this folder, then visit `localhost:8000/fulfillment-hub.html`.)
+# 📦 XYZ Fulfillment Hub
+### Real-Time Warehouse Operations & Exception Management Dashboard
 
-## Problems addressed (and why these four)
+[![Live Demo](https://img.shields.io/badge/Demo-Live%20Artifact-blue?style=for-the-badge&logo=googlechrome&logoColor=white)](https://claude.ai/artifact/5kjYyazGcG16RewfsrVkNz)
+[![Architecture](https://img.shields.io/badge/Stack-Vanilla%20HTML%2FCSS%2FJS-orange?style=for-the-badge)](fulfillment-hub.html)
+[![Zero Setup](https://img.shields.io/badge/Dependencies-Zero-emerald?style=for-the-badge)](#-quick-start)
 
-Of the eight pain points in the brief, this app targets:
+A lightweight, zero-dependency operations hub engineered for warehouse floor staff to eliminate manual bottlenecks, prevent missed SLAs, and catch inventory discrepancies *before* picks fail.
 
-1. **No at-a-glance order status** → a Kanban board across all six fulfillment stages (Received → Processing → Picking → Packing → Staging → Shipped).
-2. **Priority orders missing deadlines** → a per-order SLA countdown (4h for priority orders, 24h for standard), color-coded and auto-flagged when overdue.
-3. **Stock shown as available but not findable** → an inventory view that flags a SKU for transfer *before* a pick fails: when Warehouse 1 stock is below the number of un-shipped orders for that SKU, and Warehouse 2 has cover stock.
-4. **Problems handled informally and forgotten** → a persistent issue log tied to order IDs, with open/resolved status.
+[Explore Demo](https://claude.ai/artifact/5kjYyazGcG16RewfsrVkNz) • [Quick Start](#-quick-start) • [Core Solutions](#-problems-addressed-and-why-these-four) • [Design Choices](#%EF%B8%8F-how-it-works)
 
-Deliberately out of scope for this iteration: courier API integration and label generation. The brief has no real courier system to test against, and these are solved problems with existing vendor APIs — the effort was better spent on the visibility and exception-tracking gaps the brief explicitly called out.
+---
 
-## How it works
+</div>
 
-- Single-file HTML/CSS/JS — no framework, no install. Chosen because the warehouse team is described as "experienced but not comfortable with technology," so the deployment story needs to be "open a link."
-- Sample data (58 orders, 8 SKUs, 2 warehouses) is generated on first load and persisted in the browser (localStorage) so demo actions — advancing an order's stage, resolving an issue — survive a page refresh.
-- Four views: **Dashboard** (KPIs + Kanban), **Orders** (filterable table with stage-advance and flag-issue actions), **Inventory** (stock + transfer-risk flags), **Issues** (exception log).
+## ⚡ Quick Start
 
-## What I'd build next with more time
+### 🌐 Hosted Version
+> **[Open Live Hosted Artifact](https://claude.ai/artifact/5kjYyazGcG16RewfsrVkNz)**
 
-- Real courier API hooks (label generation, pickup confirmation webhooks) instead of a manual courier field
-- Multi-user concurrency and an audit trail on stage changes
-- Configurable SLA thresholds per channel/courier rather than hardcoded priority/standard tiers
+### 💻 Run Locally
+No build steps, package managers, or local servers required.
 
-## Files in this submission
-
-- `fulfillment-hub.html` — the application
-- `AI_usage_note.pdf` — AI usage disclosure (per submission requirements)
-- `README.md` — this file
+1. **Direct Launch:** Double-click or open `fulfillment-hub.html` directly in any web browser.
+2. *(Optional)* Run a lightweight local HTTP server:
+   ```bash
+   python3 -m http.server 8000
